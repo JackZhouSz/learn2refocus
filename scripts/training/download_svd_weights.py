@@ -1,10 +1,8 @@
 from huggingface_hub import snapshot_download
-from diffusers import StableDiffusionPipeline # or whichever pipeline applies
 
-save_dir = "/datasets/sai/focal-burst-learning/svd/svdh"  
+save_dir = "svdh"  
 
 # 1. Download the full model repo (weights + config + assets)
-
 local_dir = snapshot_download(
     repo_id="stabilityai/stable-video-diffusion-img2vid",
     revision="main",

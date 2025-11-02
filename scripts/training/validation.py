@@ -70,7 +70,7 @@ def valid_net(args, val_dataset, val_dataloader, unet, image_encoder, vae, zero,
                 noise_aug_strength=0,
                 accelerator=accelerator,
                 weight_dtype=weight_dtype,
-                conditioning = args.val_conditioning,
+                conditioning = args.conditioning,
                 focal_stack_num = focal_stack_num,
                 zero=zero
                 # generator=generator,

@@ -110,8 +110,8 @@ def main():
     )
 
     accelerator.init_trackers(
-        project_name="RefocusingSVD",
-        init_kwargs={"wandb": { "name" : run_name}}#, "settings": wandb.Settings(code_dir="/sensei-fs-3/users/stedla/focal-burst-learning/svd/scripts/training")}},
+        project_name=args.wandb_project,
+        init_kwargs={"wandb": { "name" : run_name}}
     )
 
     generator = torch.Generator(
@@ -283,8 +283,8 @@ def main():
     # DataLoaders creation:
     args.global_batch_size = args.per_gpu_batch_size * accelerator.num_processes
 
-    train_dataset = FocalStackDataset(args.base_folder,  sample_frames=args.num_frames, split="train")
-    val_dataset = FocalStackDataset(args.base_folder, sample_frames=args.num_frames, split="val" if not args.test else "test")
+    train_dataset = FocalStackDataset(args.data_folder,  sample_frames=args.num_frames, split="train")
+    val_dataset = FocalStackDataset(args.data_folder, sample_frames=args.num_frames, split="val" if not args.test else "test")
     sampler = RandomSampler(train_dataset)
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset,
@@ -364,7 +364,6 @@ def main():
     first_epoch = 0
 
 
-
     # Potentially load in the weights and states from a previous save
     if args.load_from_checkpoint:
 
@@ -391,9 +390,9 @@ def main():
     progress_bar.set_description("Steps")
 
     if args.photos:
-        train_dataset = OutsidePhotosDataset(base_folder="/sensei-fs-3/users/stedla/focal-burst-learning/svd/scripts/training/test_photos", sample_frames=args.num_frames)
-        val_dataset = OutsidePhotosDataset(base_folder="/sensei-fs-3/users/stedla/focal-burst-learning/svd/scripts/training/test_photos",sample_frames=args.num_frames)
- 
+        train_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
+        val_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
+
         sampler = RandomSampler(train_dataset)
         train_dataloader = torch.utils.data.DataLoader(
             train_dataset,
