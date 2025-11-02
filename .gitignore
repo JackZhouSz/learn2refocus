@@ -1,0 +1,22 @@
+# extensions
+*.egg-info
+*.py[cod]
+
+# envs
+.pt13
+.pt2
+
+# directories
+/checkpoints
+/dist
+/outputs
+/build
+/src
+/.vscode
+/svdh
+
+/scripts/training/outputs
+/scripts/training/test_photos
+/wandb
+/assets
+
