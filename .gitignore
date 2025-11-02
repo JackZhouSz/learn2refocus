@@ -15,8 +15,8 @@
 /.vscode
 /svdh
 
-/scripts/training/outputs
-/scripts/training/test_photos
+/training/outputs
+/training/test_photos
 /wandb
 /assets
 

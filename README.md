@@ -32,14 +32,13 @@ This section describes how to train and evaluate our **video diffusion model** f
 ### 🔧 Environment Setup
 
 ```bash
-conda env create -f environment.yml
+conda env create -f setup/environment.yml
 conda activate refocus
 ```
 
-- Install PyTorch ≥ 2.1 and dependencies listed in the YAML file.  
+- Install PyTorch and dependencies listed in the YAML file.  
 - Create a Weights & Biases (wandb) account for experiment tracking.  
-  Update the `wandb` settings in the config files under `configs/`.  
-- (Optional) For faster training, enable xformers memory-efficient attention.
+  Update the `wandb` settings in the config files under `training/configs` with your wandb login information.  
 
 ---
 
@@ -103,4 +102,4 @@ results/{experiment_name}/
 
 ### 📨 Contact
 
-For questions or issues, please reach out via the [project page](https://refocus-diffusion.github.io) or open an issue on the GitHub repository.
+For questions or issues, please reach out via the [project page](https://learn2refocus.github.io) or directly to [Sai Tedla](tedlasai@gmail.com).

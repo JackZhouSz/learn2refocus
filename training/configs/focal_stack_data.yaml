@@ -1,7 +1,8 @@
-data_folder: "/datasets/sai/focal-burst-learning/svd/scripts/training/test_photos"
+data_folder: "/datasets/sai/scenes_merged"
 pretrained_model_name_or_path: "/datasets/sai/focal-burst-learning/svd/svdh"
+load_from_checkpoint: "/datasets/sai/focal-burst-learning/svd/training/outputs/final_checkpoint"
+output_dir: "/datasets/sai/focal-burst-learning/svd/outputs"
 wandb_project: "RefocusingSVD"
-load_from_checkpoint: "/datasets/sai/focal-burst-learning/svd/scripts/training/outputs/final_checkpoint"
 test: true
 revision: null
 num_frames: 9
@@ -9,7 +10,6 @@ num_validation_images: 1
 validation_steps: 1000
 photos: false
 conditioning: "random"
-output_dir: "./outputs"
 seed: 0
 per_gpu_batch_size: 1
 num_train_epochs: 600
