@@ -52,23 +52,23 @@ python setup/download_svd_weights.py
 
 ### 🏋️‍♂️ Training
 
+Set the following paths in your YAML config (feel free to change others paths to match your configuration):
+
+
+```yaml
+data_folder: 
+splits_dir: 
+wandb_project: "RefocusingSVD"
+run_name: "focal_stacks_train"
+```
+
 To train our model, run:
 
 ```bash
 accelerate launch --config_file training/configs/accelerator_config.yaml --multi_gpu training/svd_runner.py --config training/configs/focal_stacks_train.yaml
 ```
 
-Set the following paths in your YAML config:
-
-```yaml
-data_folder: "/datasets/sai/scenes_merged"
-pretrained_model_name_or_path: "/datasets/sai/focal-burst-learning/svd/svdh"
-load_from_checkpoint: null
-output_dir: "/datasets/sai/focal-burst-learning/svd/outputs/focal_stacks_train"
-splits_dir: "/datasets/sai/focal-burst-learning"  # all split.pkl files stored here
-wandb_project: "RefocusingSVD"
-run_name: "focal_stacks_train"
-```
+Checkpoint will be in `outputs/focal_stacks_train`
 
 ---
 
@@ -95,10 +95,11 @@ accelerate launch --config_file training/configs/accelerator_config.yaml --multi
 ---
 
 Each output folder contains the generated focal stacks corresponding to the input image’s focal positions.
+Results and visualizations will be saved to the directory specified by `output_dir` (default: `output_dir/focal_stacks_test/`).  
 
 ### 📜 Notes
 
-- Checkpoints (base + fine-tuned) are available on the [project page](https://refocus-diffusion.github.io).  
+- Checkpoints (base + fine-tuned) are available on the [project page](https://learn2refocus.github.io).  
 - Dataset download links will be added soon.
 - We utilize `extra/compute_metrics.py` to compute all metrics for this project.
 
