@@ -146,7 +146,7 @@ class OutsidePhotosDataset(Dataset):
 
 
 class FocalStackDataset(Dataset):
-    def __init__(self, data_folder: str, split="train", num_samples=100000, width=640, height=896, sample_frames=9): #4.5
+    def __init__(self, data_folder: str, splits_dir, split="train", num_samples=100000, width=640, height=896, sample_frames=9): #4.5
         #800*600 - 480000
         #896*672 - 602112
         """
@@ -158,6 +158,7 @@ class FocalStackDataset(Dataset):
         self.sample_frames = sample_frames
         # Define the path to the folder containing video frames
         self.data_folder = data_folder
+        self.splits_dir = splits_dir
 
         size = "midsize"
         # Use glob to find matching folders
@@ -188,7 +189,7 @@ class FocalStackDataset(Dataset):
         if debug:
             self.scenes = self.scenes[50:60] 
         elif split == "train":
-            pkl_file = "/datasets/sai/focal-burst-learning/train_scenes.pkl"
+            pkl_file = os.path.join(self.splits_dir, "train_scenes.pkl")
             #load the train scenes
             with open(pkl_file, "rb") as f:
                 pkl_scenes = pickle.load(f)
@@ -197,7 +198,7 @@ class FocalStackDataset(Dataset):
             self.scenes = [scene for scene in self.scenes if scene.split('/')[-4] in pkl_scenes]
 
         elif split == "val":
-            pkl_file = "/datasets/sai/focal-burst-learning/test_scenes.pkl"
+            pkl_file = os.path.join(self.splits_dir, "test_scenes.pkl") #use first 10 test scenes for val (just for visualization)
 
             #load the test scenes
             with open(pkl_file, "rb") as f:
@@ -207,7 +208,7 @@ class FocalStackDataset(Dataset):
             self.scenes = [scene for scene in self.scenes if scene.split('/')[-4] in pkl_scenes]
             self.scenes = self.scenes[:10]
         else:
-            pkl_file = "/datasets/sai/focal-burst-learning/test_scenes.pkl"
+            pkl_file = os.path.join(self.splits_dir, "test_scenes.pkl")
 
             #load the test scenes
             with open(pkl_file, "rb") as f:

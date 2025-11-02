@@ -1,8 +1,8 @@
 photos: true # Use outside photos 
-data_folder: "/datasets/sai/focal-burst-learning/svd/photos"
-pretrained_model_name_or_path: "/datasets/sai/focal-burst-learning/svd/svdh"
-load_from_checkpoint: "/datasets/sai/focal-burst-learning/svd/checkpoints/checkpoint-200000"
-output_dir: "/datasets/sai/focal-burst-learning/svd/outputs/outside_photos"
+data_folder: "./photos"
+pretrained_model_name_or_path: "./svdh"
+load_from_checkpoint: "./checkpoints/checkpoint-200000"
+output_dir: "./outputs/outside_photos"
 wandb_project: "RefocusingSVD"
 run_name: "outside_photos"
 test: true

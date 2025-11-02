@@ -465,12 +465,12 @@ def main():
                         random_frames = [0]
                     elif conditioning == "random":
                         #choose a random number between 0 and 8 inclusive
-                        random_frames = [np.random.randint(0, 9)]
+                        random_frames = [np.random.randint(0, args.num_frames)]
                     elif conditioning in ["ablate_position", "ablate_time"] :
-                        random_frames = [np.random.randint(0, 9)]
+                        random_frames = [np.random.randint(0, args.num_frames)]
                     elif conditioning == "ablate_single_frame":
-                        input_random_frame = np.random.randint(0, 9)
-                        output_random_frame = np.random.randint(0, 9)
+                        input_random_frame = np.random.randint(0, args.num_frames)
+                        output_random_frame = np.random.randint(0, args.num_frames)
                     elif conditioning == "random_single_double_triple":
                         num_imgs = random.randint(1, 3)
                         random_frames = choices(range(args.num_frames), k=num_imgs)

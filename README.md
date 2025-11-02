@@ -51,50 +51,55 @@ python setup/download_svd_weights.py
 
 ### 🏋️‍♂️ Training
 
-**Train Video Diffusion Model**
+**Training our Model**
 ```bash
-python main.py --config configs/stage1_base.yaml
+
+accelerate launch --config_file training/configs/accelerator_config.yaml --multi
+_gpu training/svd_runner.py --config training/configs/focal_stacks_train.yaml 
 ```
-
-
-**Notes:**
-- Set `test: false` before training.  
-- Update the dataset paths and WandB settings before running.  
-- We provide configs for both base (blur-to-video) and fine-tuned (refocusing) stages.
-
 ---
 
-### 🧪 Testing
-Before testing, set `test: true` in your config and provide paths to pretrained checkpoints (available on the project page).
+Set appropriate paths in yaml to configure "data_folder: "/datasets/sai/scenes_merged"
+pretrained_model_name_or_path: "/datasets/sai/focal-burst-learning/svd/svdh"
+load_from_checkpoint: null
+output_dir: "/datasets/sai/focal-burst-learning/svd/outputs/focal_stacks_train"
+splits_dir: "/datasets/sai/focal-burst-learning" #all split.pkl files are stored here
+wandb_project: "RefocusingSVD"
+run_name: "focal_stacks_train""
+
+### 🧪 Testing (In-the-Wild)
+Testing on in-the-wild photos.
+
+Again set
+
+data_folder: "/datasets/sai/focal-burst-learning/svd/photos"
+pretrained_model_name_or_path: "/datasets/sai/focal-burst-learning/svd/svdh"
+load_from_checkpoint: "/datasets/sai/focal-burst-learning/svd/checkpoints/checkpoint-200000"
+output_dir: "/datasets/sai/focal-burst-learning/svd/outputs/outside_photos"
+wandb_project: "RefocusingSVD"
+run_name: "outside_photos"
+
+Place images in `\photos` directory. Then run,
 
 Example:
-```bash
-python main.py --config configs/test_refocus.yaml
 ```
+accelerate launch --config_file training/configs/accelerator_config.yaml --multi_gpu training/svd_runner.py --config training/configs/outside_photos.yaml
+```
+Results and visualizations will be saved under the output_dir set in the directory.
 
-This will:
-- Load the pretrained model weights.  
-- Generate refocused videos.  
-- Compute PSNR, SSIM, and perceptual metrics.  
 
-Results and visualizations will be saved under:
-```
-results/{experiment_name}/
-```
+### 🧪 Testing (Focal Stack Dataset)
+
+accelerate launch --config_file training/configs/accelerator_config.yaml --multi_gpu training/svd_runner.py --config training/configs/outside_photos.yaml
+
 
 ---
 
 ### 📜 Notes
 
-- All configs are initialized in test mode. Switch to training by setting `test: false`.  
 - Checkpoints for all experiments (base + fine-tuned) are available on the project page.  
-- Visualizations can be rendered as videos using:
-  ```bash
-  python utils/render_video.py --input results/example/
-  ```
-- The dataset includes both synthetic motion-blur and real captured examples for evaluation.
+- Dataest available on project page.
 
----
 
 ### 📨 Contact
 
