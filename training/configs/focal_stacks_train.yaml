@@ -1,8 +1,8 @@
 data_folder: "/datasets/sai/scenes_merged"
 splits_dir: "/datasets/sai/focal-burst-learning" #all split.pkl files are stored here
-pretrained_model_name_or_path: "/datasets/sai/focal-burst-learning/svd/svdh"
+pretrained_model_name_or_path: "./svdh"
 load_from_checkpoint: null
-output_dir: "/datasets/sai/focal-burst-learning/svd/outputs/focal_stacks_train"
+output_dir: "./outputs/focal_stacks_train"
 wandb_project: "RefocusingSVD"
 run_name: "focal_stacks_train"
 test: false

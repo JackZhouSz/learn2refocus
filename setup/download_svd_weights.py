@@ -1,6 +1,6 @@
 from huggingface_hub import snapshot_download
 
-save_dir = "svdh"  
+save_dir = "./svdh"  
 
 # 1. Download the full model repo (weights + config + assets)
 local_dir = snapshot_download(
