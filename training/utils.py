@@ -486,10 +486,6 @@ def parse_args():
 
     # load YAML and merge into args
     config = parse_config(args.config)
-    print(config)
-
-    print("Config[load_from_checkpoint]:", config.get("load_from_checkpoint"))
-
     # combine yaml + command line args (command line has priority)
     for k, v in vars(args).items():
         if v is not None:
@@ -497,6 +493,8 @@ def parse_args():
 
     # convert dict to argparse.Namespace for downstream compatibility
     args = argparse.Namespace(**config)
+
+    print("OUTPUT DIR: ", args.output_dir)
     return args
 
 

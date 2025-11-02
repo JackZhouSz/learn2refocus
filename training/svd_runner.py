@@ -84,9 +84,6 @@ def main():
     currentMonth = datetime.now().month
     currentYear = datetime.now().year
 
-    run_name = f"SVD_{currentMonth}-{currentDay}-{currentHour}-{currentMinute}-{currentSecond}"
-    args.output_dir = os.path.join(args.output_dir, run_name)
-
 
     if args.non_ema_revision is not None:
         deprecate(
@@ -111,7 +108,7 @@ def main():
 
     accelerator.init_trackers(
         project_name=args.wandb_project,
-        init_kwargs={"wandb": { "name" : run_name}}
+        init_kwargs={"wandb": { "name" : args.run_name}}
     )
 
     generator = torch.Generator(
@@ -283,8 +280,12 @@ def main():
     # DataLoaders creation:
     args.global_batch_size = args.per_gpu_batch_size * accelerator.num_processes
 
-    train_dataset = FocalStackDataset(args.data_folder,  sample_frames=args.num_frames, split="train")
-    val_dataset = FocalStackDataset(args.data_folder, sample_frames=args.num_frames, split="val" if not args.test else "test")
+    if args.photos:
+        train_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
+        val_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
+    else:
+        train_dataset = FocalStackDataset(args.data_folder,  args.splits_dir, sample_frames=args.num_frames, split="train")
+        val_dataset = FocalStackDataset(args.data_folder, args.splits_dir, sample_frames=args.num_frames, split="val" if not args.test else "test")
     sampler = RandomSampler(train_dataset)
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset,
@@ -381,6 +382,7 @@ def main():
 
             resume_global_step = global_step * args.gradient_accumulation_steps
             first_epoch = global_step // num_update_steps_per_epoch
+
             resume_step = resume_global_step % (
                 num_update_steps_per_epoch * args.gradient_accumulation_steps)
 
@@ -389,29 +391,32 @@ def main():
                         disable=not accelerator.is_local_main_process)
     progress_bar.set_description("Steps")
 
-    if args.photos:
-        train_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
-        val_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
+    # print("ARGS PHOTOS: ", args.photos)
+    # if args.photos:
+    #     print("MAKING OUTSIDE PHOTOS DATASET")
+    #     train_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
+    #     val_dataset = OutsidePhotosDataset(data_folder=args.data_folder, sample_frames=args.num_frames)
 
-        sampler = RandomSampler(train_dataset)
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset,
-            sampler=sampler,
-            batch_size=args.per_gpu_batch_size,
-            num_workers=args.num_workers,
-            drop_last=True
-        )
-        val_dataloader = torch.utils.data.DataLoader(
-            val_dataset,
-            batch_size=args.per_gpu_batch_size,
-            num_workers=args.num_workers,
-            shuffle=False,
-        )
+    #     sampler = RandomSampler(train_dataset)
+    #     train_dataloader = torch.utils.data.DataLoader(
+    #         train_dataset,
+    #         sampler=sampler,
+    #         batch_size=args.per_gpu_batch_size,
+    #         num_workers=args.num_workers,
+    #         drop_last=True
+    #     )
+    #     val_dataloader = torch.utils.data.DataLoader(
+    #         val_dataset,
+    #         batch_size=args.per_gpu_batch_size,
+    #         num_workers=args.num_workers,
+    #         shuffle=False,
+    #     )
 
-        train_dataloader, val_dataloader = accelerator.prepare(
-            train_dataloader, val_dataloader)
+    #     train_dataloader, val_dataloader = accelerator.prepare(
+    #         train_dataloader, val_dataloader)
+    if args.test:
+        first_epoch = 0 #just so I enter loop for test (regardless of training iterations)
 
-    
     for epoch in range(first_epoch, args.num_train_epochs):
         train_loss = 0.0
         for step, batch in enumerate(train_dataloader):
@@ -648,7 +653,7 @@ def main():
             break
     # Create the pipeline using the trained modules and save it.
     accelerator.wait_for_everyone()
-    if accelerator.is_main_process:
+    if accelerator.is_main_process and not args.test:
 
         pipeline = StableVideoDiffusionPipeline.from_pretrained(
             args.pretrained_model_name_or_path,

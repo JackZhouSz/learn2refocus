@@ -16,7 +16,7 @@
 /svdh
 
 /training/outputs
-/training/test_photos
+/my_photos
 /wandb
 /assets
-
+/photos/*

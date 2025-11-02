@@ -35,6 +35,8 @@ def valid_net(args, val_dataset, val_dataloader, unet, image_encoder, vae, zero,
     val_save_dir = os.path.join(
         args.output_dir, "validation_images")
 
+    print("Validation images will be saved to ", val_save_dir)
+
     os.makedirs(val_save_dir, exist_ok=True)
 
 

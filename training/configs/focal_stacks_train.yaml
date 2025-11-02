@@ -1,15 +1,16 @@
-photos: true # Use outside photos 
-data_folder: "/datasets/sai/focal-burst-learning/svd/photos"
+data_folder: "/datasets/sai/scenes_merged"
 pretrained_model_name_or_path: "/datasets/sai/focal-burst-learning/svd/svdh"
-load_from_checkpoint: "/datasets/sai/focal-burst-learning/svd/checkpoints/checkpoint-200000"
-output_dir: "/datasets/sai/focal-burst-learning/svd/outputs/outside_photos"
+load_from_checkpoint: null
+output_dir: "/datasets/sai/focal-burst-learning/svd/outputs/focal_stacks_train"
+splits_dir: "/datasets/sai/focal-burst-learning" #all split.pkl files are stored here
 wandb_project: "RefocusingSVD"
-run_name: "outside_photos"
-test: true
+run_name: "focal_stacks_train"
+test: false
 revision: null
 num_frames: 9
 num_validation_images: 1
 validation_steps: 1000
+photos: false
 conditioning: "random"
 seed: 0
 per_gpu_batch_size: 1

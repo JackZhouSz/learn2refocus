@@ -34,26 +34,22 @@ This section describes how to train and evaluate our **video diffusion model** f
 ```bash
 conda env create -f setup/environment.yml
 conda activate refocus
+python setup/download_svd_weights.py
 ```
 
 - Install PyTorch and dependencies listed in the YAML file.  
 - Create a Weights & Biases (wandb) account for experiment tracking.  
   Update the `wandb` settings in the config files under `training/configs` with your wandb login information.  
+- svdh (the Stable Video Diffusion model weights) should be in a folder called svdh at the top of your directory after running `setup_download_svd_weights.py`
 
 ---
 
 ### 📂 Dataset
 
-- Download the dataset and sample metadata files from the project page.  
-- Unzip all files into the same root directory, preserving subfolder structure.  
-- Update dataset paths in your config YAMLs.  
-- The train/val/test split is defined in `data/refocus_dataset.py`.  
-- For visualization, use the provided scripts in `utils/visualize.py`.
+- Description Coming
 
----
 
 ### 🏋️‍♂️ Training
-
 
 **Train Video Diffusion Model**
 ```bash
