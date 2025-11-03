@@ -3,9 +3,10 @@
 **SaiKiran Tedla, Zhoutong Zhang, Xuaner Zhang, Shumian Xin**  
 Adobe Research & York University  
 
-📄 [Paper (PDF)]()  
-🌐 [Project Page ](https://learn2refocus.github.io)
+📄 [Paper (PDF)](your-pdf-link)  
+🌐 [Project Page](https://learn2refocus.github.io)  
 📂 [Data and Checkpoints](https://cp.sync.com/files/66691398045749?view=list)
+
 ---
 
 ## 📌 Citation
