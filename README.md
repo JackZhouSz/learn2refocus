@@ -4,9 +4,7 @@
 Adobe Research & York University  
 
 📄 [Paper (PDF)]()  
-
 🌐 [Project Page ](https://learn2refocus.github.io)
-
 📂 [Data and Checkpoints](https://cp.sync.com/files/66691398045749?view=list)
 ---
 
