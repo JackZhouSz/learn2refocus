@@ -115,7 +115,7 @@ Results and visualizations will be saved to the directory specified by `output_d
 
 ### 📜 Notes
 
-- Checkpoints (base + fine-tuned) are available on the [project page](https://learn2refocus.github.io).  
+- Checkpoints are available on the [project page](https://learn2refocus.github.io).  
 - Dataset download links will be added soon.
 - We utilize `extra/compute_metrics.py` to compute all metrics for this project.
 
