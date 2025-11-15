@@ -5,7 +5,8 @@ Adobe Research & York University
 
 ### 📄 [Paper (PDF)](your-pdf-link)  
 ### 🌐 [Project Page](https://learn2refocus.github.io)  
-### 📂 [Data and Checkpoints](https://cp.sync.com/files/66691398045749?view=list)
+### 📂 [Data](https://cp.sync.com/files/66691398045749?view=list)
+### 📂 [Checkpoints](https://huggingface.co/tedlasai/learn2refocus/tree/main)
 
 ---
 
@@ -36,12 +37,14 @@ This guide explains how to train and evaluate our **video diffusion model** for 
 conda env create -f setup/environment.yml
 conda activate refocus
 python setup/download_svd_weights.py
+python setup/download_checkpoints
 ```
 
 - Install PyTorch and all dependencies listed in the YAML file.  
 - Create a Weights & Biases (wandb) account for experiment tracking.  
   Update the wandb credentials in `training/configs` with your login info.  
 - After running `setup/download_svd_weights.py`, you should have a folder named `svdh` at the project root containing the Stable Video Diffusion model weights.
+- After running `setup/download_checkpoints.py`, you should have a folder named `checkpoints/checkpoints-200000` at the project root containing our finetuned weights.
 
 ---
 
