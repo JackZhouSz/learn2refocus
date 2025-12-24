@@ -50,14 +50,13 @@ python setup/download_checkpoints.py
 
 ### 🧪 Testing (In-the-Wild)
 
-To test on real-world photos, place your images in the `photos/` directory and run:
+To test on real-world photos, place your images in the `photos/` directory and run (requires about 23-25GB memory depending on image sizes):
 
 ```bash
 accelerate launch --config_file training/configs/accelerator_config.yaml \
   --multi_gpu training/svd_runner.py \
   --config training/configs/outside_photos.yaml
 ```
-On my machine this will use about 23-25GB depending on the size of the image. 
 Results and visualizations will be saved to the directory specified by `output_dir` (default: `output_dir/outside_photos/`).  
 Each output folder contains the generated focal stacks corresponding to the input image’s focal positions.
 
