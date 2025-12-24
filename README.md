@@ -60,6 +60,9 @@ accelerate launch --config_file training/configs/accelerator_config.yaml \
 Results and visualizations will be saved to the directory specified by `output_dir` (default: `output_dir/outside_photos/`).  
 Each output folder contains the generated focal stacks corresponding to the input image’s focal positions.
 
+**Note:** If you want to run with lower memory, you can set `max_pixels = 500000` in `utils.py` to a lower number. This will run the model at a lower resolution. 
+
+
 ---
 
 ### 🧪 Testing (Focal Stack Dataset)
