@@ -3,9 +3,9 @@
 **SaiKiran Tedla, Zhoutong Zhang, Xuaner Zhang, Shumian Xin**  
 Adobe Research & York University  
 
-### 📄 [Paper (PDF)](your-pdf-link)  
+### 📄 [Paper (PDF)](https://dl.acm.org/doi/10.1145/3757377.3763873)  
 ### 🌐 [Project Page](https://learn2refocus.github.io)  
-### 📂 [Data](https://cp.sync.com/files/66691398045749?view=list)
+### 📂 [Data](https://ln5.sync.com/dl/dc6d99c50#ra9336yd-w9u958dw-w4s4xnjv-54qd4drj)
 ### 📂 [Checkpoints](https://huggingface.co/tedlasai/learn2refocus/tree/main)
 
 ---
@@ -34,10 +34,10 @@ This guide explains how to train and evaluate our **video diffusion model** for 
 ### 🔧 Environment Setup
 
 ```bash
-conda env create -f setup/environment.yml
+conda env create -f setup/environment.yaml
 conda activate refocus
 python setup/download_svd_weights.py
-python setup/download_checkpoints
+python setup/download_checkpoints.py
 ```
 
 - Install PyTorch and all dependencies listed in the YAML file.  
@@ -57,7 +57,7 @@ accelerate launch --config_file training/configs/accelerator_config.yaml \
   --multi_gpu training/svd_runner.py \
   --config training/configs/outside_photos.yaml
 ```
-
+On my machine this will use about 23-25GB depending on the size of the image. 
 Results and visualizations will be saved to the directory specified by `output_dir` (default: `output_dir/outside_photos/`).  
 Each output folder contains the generated focal stacks corresponding to the input image’s focal positions.
 
