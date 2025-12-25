@@ -25,12 +25,11 @@ from accelerate.logging import get_logger
 from accelerate.utils import set_seed
 from tqdm.auto import tqdm
 from transformers import CLIPVisionModelWithProjection
-from simplified_validation import valid_net
 from diffusers import AutoencoderKLTemporalDecoder, UNetSpatioTemporalConditionModel
 from diffusers.utils import check_min_version
-from simplified_pipeline import StableVideoDiffusionPipeline
-import videoio
+from simple_pipeline import StableVideoDiffusionPipeline
 from PIL import Image
+from diffusers.utils import export_to_video
 
 
 import argparse
@@ -41,8 +40,6 @@ logger = get_logger(__name__, log_level="INFO")
 import numpy as np
 import torch
 import os
-import glob
-
 
 
 def parse_args():
@@ -127,44 +124,34 @@ def find_scale(height, width):
         # Reduce the scale slightly
         scale -= 0.01
 
-def convert_to_batch(image, input_focal_position, sample_frames=9):
-    scene, focal_stack_num = image, input_focal_position
-    from PIL import Image
-    with Image.open(scene) as img:
 
-        icc_profile = img.info.get("icc_profile")
-        if icc_profile is None:
-            icc_profile = "none"
-        original_pixels = torch.from_numpy(np.array(img)).float().permute(2,0,1)
-        original_pixels = original_pixels / 255
-        width, height = img.size
-        scaled_width, scaled_height = find_scale(width, height)
+def convert_to_batch(img, input_focal_position, sample_frames=9):
+    focal_stack_num = input_focal_position
+    icc_profile = img.info.get("icc_profile")
+    if icc_profile is None:
+        icc_profile = "none"
+    original_pixels = torch.from_numpy(np.array(img)).float().permute(2,0,1)
+    original_pixels = original_pixels / 255
+    width, height = img.size
+    scaled_width, scaled_height = find_scale(width, height)
 
-        img_resized = img.resize((scaled_width, scaled_height))
-        img_tensor = torch.from_numpy(np.array(img_resized)).float()
-        img_normalized = img_tensor / 127.5 - 1
-        img_normalized = img_normalized.permute(2, 0, 1)
+    img_resized = img.resize((scaled_width, scaled_height))
+    img_tensor = torch.from_numpy(np.array(img_resized)).float()
+    img_normalized = img_tensor / 127.5 - 1
+    img_normalized = img_normalized.permute(2, 0, 1)
 
-        pixels = torch.zeros((1, sample_frames, 3, scaled_height, scaled_width))
-        pixels[0, focal_stack_num] = img_normalized
-        
-        name = os.path.splitext(os.path.basename(scene))[0]
-        return {"pixel_values": pixels, "focal_stack_num": focal_stack_num, "original_pixel_values": original_pixels, 'icc_profile': icc_profile, "name": name}
+    pixels = torch.zeros((1, sample_frames, 3, scaled_height, scaled_width))
+    pixels[0, focal_stack_num] = img_normalized
+    
+    return {"pixel_values": pixels, "focal_stack_num": focal_stack_num, "original_pixel_values": original_pixels, 'icc_profile': icc_profile}
 
 
-def inference_on_image(args, batch, unet, image_encoder, vae, global_step, weight_dtype, device):
+def inference_on_image(args, batch, pipeline, device):
 
-    pipeline = StableVideoDiffusionPipeline.from_pretrained(
-        args.pretrained_model_path,
-        unet=unet,
-        image_encoder=image_encoder,
-        vae=vae,
-        torch_dtype=weight_dtype,
-    )
+
 
     pipeline.set_progress_bar_config(disable=True)
     num_frames = 9 
-    unet.eval()
 
     pixel_values = batch["pixel_values"].to(device)
     focal_stack_num = batch["focal_stack_num"]
@@ -184,14 +171,13 @@ def inference_on_image(args, batch, unet, image_encoder, vae, global_step, weigh
         num_inference_steps=args.num_inference_steps,
     )
     video_frames = svd_output.frames[0]
-
-
     video_frames_normalized = video_frames*0.5 + 0.5
     video_frames_normalized = torch.clamp(video_frames_normalized,0,1)
     video_frames_normalized = video_frames_normalized.permute(1,0,2,3)
-    video_frames_normalized = torch.nn.functional.interpolate(video_frames_normalized, ((pixel_values.shape[2]//2)*2, (pixel_values.shape[3]//2)*2), mode='bilinear')
+    video_frames_normalized = torch.nn.functional.interpolate(video_frames_normalized, ((pixel_values.shape[3]//2)*2, (pixel_values.shape[4]//2)*2), mode='bilinear')
 
-    return video_frames_normalized, focal_stack_num, icc_profile
+
+    return video_frames_normalized, focal_stack_num
     # run inference
 def write_output(output_dir, frames, focal_stack_num, icc_profile):
 
@@ -199,14 +185,10 @@ def write_output(output_dir, frames, focal_stack_num, icc_profile):
     print("Validation images will be saved to ", output_dir)
     os.makedirs(output_dir, exist_ok=True)
 
-    os.makedirs(os.path.join(output_dir, f"position_{focal_stack_num}/videos"), exist_ok=True)
-    videoio.videosave(os.path.join(
-        output_dir,
-        f"stack.mp4",
-    ), frames.permute(0,2,3,1).cpu().numpy(), fps=5)
+    print("Frames shape: ", frames.shape)
+    export_to_video(frames.permute(0,2,3,1).cpu().numpy(), os.path.join(output_dir, "stack.mp4"), fps=5)
 
     #save images
-    os.makedirs(os.path.join(output_dir, f"position_{focal_stack_num}/images"), exist_ok=True)
     for i in range(9):
         #use Pillow to save images
         img = Image.fromarray((frames[i].permute(1,2,0).cpu().numpy()*255).astype(np.uint8))
@@ -214,19 +196,10 @@ def write_output(output_dir, frames, focal_stack_num, icc_profile):
             img.info['icc_profile'] = icc_profile
         img.save(os.path.join(output_dir, f"frame_{i}.png"))
 
-
-def main():
-    args = parse_args()
-
-    if args.seed is not None:
-        set_seed(args.seed)
-
-    if args.output_dir is not None:
-        os.makedirs(args.output_dir, exist_ok=True)
-
+def load_model(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # inference-only modules
+        # inference-only modules
     image_encoder = CLIPVisionModelWithProjection.from_pretrained(
         args.pretrained_model_path, subfolder="image_encoder"
     )
@@ -242,14 +215,37 @@ def main():
     unet = UNetSpatioTemporalConditionModel.from_pretrained(
         args.learn2refocus_hf_repo_path, subfolder="checkpoint-200000/unet"
     ).to(device)
-
-    batch = convert_to_batch(args.image_path, input_focal_position=6)
-
     unet.eval(); image_encoder.eval(); vae.eval()
+
+
+    pipeline = StableVideoDiffusionPipeline.from_pretrained(
+        args.pretrained_model_path,
+        unet=unet,
+        image_encoder=image_encoder,
+        vae=vae,
+        torch_dtype=weight_dtype,
+    )
+    return pipeline, device
+
+
+def main():
+    args = parse_args()
+
+    if args.seed is not None:
+        set_seed(args.seed)
+
+    if args.output_dir is not None:
+        os.makedirs(args.output_dir, exist_ok=True)
+
+    pipeline, device = load_model(args)
+
     with torch.no_grad():
-        output_frames, focal_stack_num, icc_profile = inference_on_image(args, batch, unet, image_encoder, vae, 0, weight_dtype, device, num_inference_steps=args.num_inference_steps)
-        val_save_dir = os.path.join(args.output_dir, "validation_images", batch['name'])
-        write_output(val_save_dir, output_frames, focal_stack_num, icc_profile)
+        img = Image.open(args.image_path)
+        batch = convert_to_batch(img, input_focal_position=6)
+        output_frames, focal_stack_num = inference_on_image(args, batch, pipeline, device)
+        name = os.path.splitext(os.path.basename(args.image_path))[0]
+        val_save_dir = os.path.join(args.output_dir, "validation_images", name)
+        write_output(val_save_dir, output_frames, focal_stack_num, batch['icc_profile'])
 
 
 
