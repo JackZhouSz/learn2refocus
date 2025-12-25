@@ -406,7 +406,6 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         sigmas: Optional[List[float]] = None,
         min_guidance_scale: float = 1.0,
         max_guidance_scale: float = 3.0,
-        reconstruction_guidance_scale: float = 2.0,
         fps: int = 7,
         motion_bucket_id: int = 127,
         noise_aug_strength: float = 0.02,
@@ -418,10 +417,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         return_dict: bool = True,
-        conditioning: str = "zero",
         focal_stack_num: int = None,
-        weight_dtype=None,
-        zero=0
     ):
         r"""
         The call function to the pipeline for generation.
@@ -572,24 +568,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             if focal_stack_num is not None:
                 frame_idx = focal_stack_num
                 mask[:, frame_idx] = 1
-            elif conditioning == "zero":
-                frame_idx = 0
-                mask[:, 0] = 1
-            elif conditioning == "random":
-                rand_idx = np.random.randint(0, num_frames) #randomly choose a frame to condition on between 0 and 8 (inclusive)
-                frame_idx = rand_idx
-                mask[:, rand_idx] = 1
-            elif conditioning in ["ablate_position", "ablate_time"]:
-                frame_idx = 0 #zero for simple testing (this won't be hit at testing time)
-            elif conditioning == "five":
-                frame_idx = 4
-                mask[:, 4] = 1
 
             original_image_latents = image_latents.clone()
-            if conditioning in ["ablate_position", "ablate_time"]:
-                image_latents = image_latents[:, frame_idx:frame_idx+1].repeat(1,num_frames, 1, 1, 1)
-            else:
-                image_latents = image_latents * mask
+            image_latents = image_latents * mask
 
             mask = mask == 1 #mask is a boolean tensor
 
