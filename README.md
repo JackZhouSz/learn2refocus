@@ -28,7 +28,7 @@ If you use our dataset, code, or model, please cite:
 
 ## 🚀 Getting Started
 
-This guide explains how to train and evaluate our **video diffusion model** for refocusing.
+This guide explains how to train and evaluate our **video diffusion model** for refocusing. Note, that we also provide a simple hugging face demo for quickly testing our method.
 
 ---
 
