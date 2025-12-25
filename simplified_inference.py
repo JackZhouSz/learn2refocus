@@ -18,20 +18,21 @@
 
 import math
 import os
-from torch.utils.data import Dataset
-import accelerate
 import numpy as np
 import torch
-import torch.nn.functional as F
 import torch.utils.checkpoint
 from accelerate.logging import get_logger
 from accelerate.utils import set_seed
-from packaging import version
 from tqdm.auto import tqdm
 from transformers import CLIPVisionModelWithProjection
 from simplified_validation import valid_net
 from diffusers import AutoencoderKLTemporalDecoder, UNetSpatioTemporalConditionModel
 from diffusers.utils import check_min_version
+from simplified_pipeline import StableVideoDiffusionPipeline
+import videoio
+from PIL import Image
+
+
 import argparse
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
 check_min_version("0.24.0.dev0")
@@ -150,6 +151,70 @@ def convert_to_batch(image, input_focal_position, sample_frames=9):
         name = os.path.splitext(os.path.basename(scene))[0]
         return {"pixel_values": pixels, "focal_stack_num": focal_stack_num, "original_pixel_values": original_pixels, 'icc_profile': icc_profile, "name": name}
 
+
+def inference_on_image(args, batch, unet, image_encoder, vae, global_step, weight_dtype, device):
+
+    pipeline = StableVideoDiffusionPipeline.from_pretrained(
+        args.pretrained_model_path,
+        unet=unet,
+        image_encoder=image_encoder,
+        vae=vae,
+        torch_dtype=weight_dtype,
+    )
+
+    pipeline.set_progress_bar_config(disable=True)
+    num_frames = 9 
+    unet.eval()
+
+    pixel_values = batch["pixel_values"].to(device)
+    focal_stack_num = batch["focal_stack_num"]
+
+    svd_output, _ = pipeline(
+        pixel_values,
+        height=pixel_values.shape[3],
+        width=pixel_values.shape[4],
+        num_frames=num_frames,
+        decode_chunk_size=8,
+        motion_bucket_id=0,
+        min_guidance_scale=1.5,
+        max_guidance_scale=1.5,
+        fps=7,
+        noise_aug_strength=0,
+        focal_stack_num = focal_stack_num,
+        num_inference_steps=args.num_inference_steps,
+    )
+    video_frames = svd_output.frames[0]
+
+
+    video_frames_normalized = video_frames*0.5 + 0.5
+    video_frames_normalized = torch.clamp(video_frames_normalized,0,1)
+    video_frames_normalized = video_frames_normalized.permute(1,0,2,3)
+    video_frames_normalized = torch.nn.functional.interpolate(video_frames_normalized, ((pixel_values.shape[2]//2)*2, (pixel_values.shape[3]//2)*2), mode='bilinear')
+
+    return video_frames_normalized, focal_stack_num, icc_profile
+    # run inference
+def write_output(output_dir, frames, focal_stack_num, icc_profile):
+
+
+    print("Validation images will be saved to ", output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    os.makedirs(os.path.join(output_dir, f"position_{focal_stack_num}/videos"), exist_ok=True)
+    videoio.videosave(os.path.join(
+        output_dir,
+        f"stack.mp4",
+    ), frames.permute(0,2,3,1).cpu().numpy(), fps=5)
+
+    #save images
+    os.makedirs(os.path.join(output_dir, f"position_{focal_stack_num}/images"), exist_ok=True)
+    for i in range(9):
+        #use Pillow to save images
+        img = Image.fromarray((frames[i].permute(1,2,0).cpu().numpy()*255).astype(np.uint8))
+        if icc_profile != "none":
+            img.info['icc_profile'] = icc_profile
+        img.save(os.path.join(output_dir, f"frame_{i}.png"))
+
+
 def main():
     args = parse_args()
 
@@ -182,7 +247,11 @@ def main():
 
     unet.eval(); image_encoder.eval(); vae.eval()
     with torch.no_grad():
-        valid_net(args, batch, unet, image_encoder, vae, 0, weight_dtype, device, num_inference_steps=args.num_inference_steps)
+        output_frames, focal_stack_num, icc_profile = inference_on_image(args, batch, unet, image_encoder, vae, 0, weight_dtype, device, num_inference_steps=args.num_inference_steps)
+        val_save_dir = os.path.join(args.output_dir, "validation_images", batch['name'])
+        write_output(val_save_dir, output_frames, focal_stack_num, icc_profile)
+
+
 
 if __name__ == "__main__":
     main()
