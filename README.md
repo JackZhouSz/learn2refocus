@@ -49,10 +49,20 @@ python setup/download_checkpoints.py
 ---
 
 ### 🧪 Testing (In-the-Wild)
+We provide two methods to run. A simple inference method that takes the image path and input focal position (0-8) that corresponds to iPhone API 0 - 0.8 (5cm to infinity depth).  You can also specify the output_dir to any path of your choice.
 
-To test on real-world photos, place your images in the `photos/` directory and run (requires about 23-25GB memory depending on image sizes):
 
 ```bash
+conda activate refocus
+python ./simple_inference.py --image_path /datasets/sai/focal-burst-learning/svd/photos/img_0.jpg --input_focal_position 0 --output_dir outputs/simple_inference
+```
+
+And a method that utilizes accelerate and lets use multigpu.
+
+To test on real-world photos, place your images in the `photos/` directory and run (requires about 20-25GB memory depending on image sizes):
+
+```bash
+conda activate refocus
 accelerate launch --config_file training/configs/accelerator_config.yaml \
   --multi_gpu training/svd_runner.py \
   --config training/configs/outside_photos.yaml

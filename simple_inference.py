@@ -98,6 +98,11 @@ def parse_args():
         default="cuda",
         help="inference device",
     )
+    parser.add_argument(
+        "--input_focal_position",
+        type=int,
+        help="focal position of input image",
+    )
 
 
     args = parser.parse_args()
@@ -241,7 +246,7 @@ def main():
 
     with torch.no_grad():
         img = Image.open(args.image_path)
-        batch = convert_to_batch(img, input_focal_position=6)
+        batch = convert_to_batch(img, input_focal_position=args.input_focal_position)
         output_frames, focal_stack_num = inference_on_image(args, batch, pipeline, device)
         name = os.path.splitext(os.path.basename(args.image_path))[0]
         val_save_dir = os.path.join(args.output_dir, "validation_images", name)
