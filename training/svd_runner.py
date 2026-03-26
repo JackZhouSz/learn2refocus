@@ -575,6 +575,7 @@ def main():
 
                     # Backpropagate
                     accelerator.backward(loss)
+                    optimizer.step()
                     lr_scheduler.step()
                     optimizer.zero_grad()
             
